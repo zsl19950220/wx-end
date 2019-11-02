@@ -27,7 +27,7 @@ class Goods extends Controller
         if (isset($data['limit']) && !empty($data['limit'])) {
             $limit = $data['limit'];
         } else {
-            $limit = 3;
+            $limit = 2;
         }
 
 

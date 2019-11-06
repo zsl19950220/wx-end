@@ -10,10 +10,17 @@
 // +----------------------------------------------------------------------
 
 use think\Route;
-Route::resource('api/category','admin/category');  //定义路由
+Route::resource('api/category','admin/category');  //定义路由  后台
 Route::resource('api/upload','admin/upload');
 Route::resource('api/goods','admin/goods');
 
+
+
+//前台
+Route::resource('api/index','index/index');
+Route::resource('api/cate','index/cate');
+Route::resource('api/catelist','index/catelist');
+Route::resource('api/goodslist','index/goodslist');
 return [
     '__pattern__' => [
         'name' => '\w+',

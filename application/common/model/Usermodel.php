@@ -26,4 +26,10 @@ class Usermodel extends Model
         return $this->where($where)->select();
     }
 
+    public function queryone($uid)
+    {
+        return $this->where('id', $uid)->find();
+    }
+
+
 }

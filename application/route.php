@@ -23,6 +23,7 @@ Route::resource('api/catelist','index/catelist'); //分类列表 次列表
 Route::resource('api/goodslist','index/goodslist'); //分类列表 主列表
 Route::resource('api/users','index/users');  //用户注册
 Route::resource('api/login','index/login');  //用户登录
+Route::resource('api/cart','index/cart');  //购物车
 
 return [
     '__pattern__' => [

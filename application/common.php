@@ -34,12 +34,35 @@ function checkToken()
         $token = request()->post('token');
     } else if (request()->header('token')) {
         $token = request()->header('token');
-    }
-
-    if (!$token) {
+    }if (!$token) {
         json(['code' => 401, 'msg' => 'token不能为空'])->send();
         exit();
     }
-    JWT::verify($token, config('jwtkey'));
+    $res=JWT::verify($token, config('jwtkey'));
+    if(!$res){
+        json(['code'=>401,'msg'=>'token不能为空'])->send();
+        exit();
+    }
 
+    request()->id=$res['id'];
+    request()->nickname=$res['nickname'];
+}
+
+function SexCodeToTex()
+{
+    $res = '未填写';
+    switch ($res) {
+        case 0;
+            $res = '未填写';
+            break;
+        case 1;
+            $res = '男';
+            break;
+        case 2;
+            $res = '女';
+            break;
+        default:
+            $res = '未填写';
+    }
+    return $res;
 }

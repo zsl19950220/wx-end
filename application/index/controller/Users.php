@@ -82,7 +82,25 @@ class Users extends Controller
      */
     public function read($id)
     {
-        //
+        checkToken();
+        $uid = $this->request->id;
+        $nickname = $this->request->nickname;
+
+        $model = model('Usermodel');
+        $user = $model ->queryone($uid);
+        $user['sex'] = SexCodeToTex($user['sex']);
+        if($user){
+            return json([
+                'code'=>config('code.success'),
+                'msg'=>'用户获取成功',
+                'data'=>$user
+            ]);
+        }else{
+            return json([
+                'code'=>config('code.success'),
+                'msg'=>'无数据',
+            ]);
+        }
     }
 
     /**

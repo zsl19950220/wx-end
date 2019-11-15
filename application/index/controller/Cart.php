@@ -11,6 +11,7 @@ namespace app\index\controller;
 
 use think\Controller;
 use think\Db;
+use think\Request;
 
 class Cart extends Controller
 {
@@ -34,7 +35,8 @@ class Cart extends Controller
 
         $model = model('Cartmodel');   //定义模型
         $cart = $model->queryone($uid);   //购物车的信息
-
+        $IncRes = 0;
+        $insertRes = 0;
         if ($cart) {
             //有购物车  判断购物车是否有商品
 //            Db::startTrans();
@@ -49,7 +51,7 @@ class Cart extends Controller
 
 
             } else {
-                $insertRes= $extramodel->insertgoods(['cid' => $cid, 'gid' => $gid, 'num' => 1, 'status' => 1, 'uid' => $uid]);
+                $insertRes = $extramodel->insertgoods(['cid' => $cid, 'gid' => $gid, 'num' => 1, 'status' => 1, 'uid' => $uid]);
 
 
             }
@@ -60,8 +62,17 @@ class Cart extends Controller
 
             if (($IncRes && $numberInc && $priceInc) || ($insertRes && $numberInc && $priceInc)) {
                 Db::commit();
+                return json([
+                    'code' => config('code.success'),
+                    'msg' => '购物车添加成功',
+                    'data' => ['cid' => $cid, 'uid' => $uid]
+                ]);
             } else {
                 Db::rollback();
+                return json([
+                    'code' => config('code.fail'),
+                    'msg' => '购物车添加失败'
+                ]);
             }
 
 
@@ -81,11 +92,16 @@ class Cart extends Controller
                 Db::commit();
                 return json([
                     'code' => config('code.success'),
-                    'msg' => '购物车添加成功'
+                    'msg' => '初始化购物车的添加成功',
+                    'data' => ['cid' => $cid, 'uid' => $uid]
                 ]);
 
             } else {
                 Db::rollback();
+                return json([
+                    'code' => config('code.fail'),
+                    'msg' => '初始化购物车的添加失败'
+                ]);
             }
 
         }
@@ -93,56 +109,98 @@ class Cart extends Controller
 
     }
 
-//    public function save()
-//    {
-//        $uid = $this->request->id;
-//
-//
-//        //用户id
-//        $data = $this->request->post();//获取数据
-//        $gid = $data['gid'];
-//        $sale = $data['sale'];
-//        $model = model('Cartmodel');
-//        $cart = $model->queryone($uid);
-//
-//        if ($cart) {
-//            $cid = $cart['cid'];
-//            $extramode = model('Cartextramodel');
-//            $goodsInfo = $extramode->queryone(['uid' => $uid, 'gid' => $gid]);
-//            if ($goodsInfo) {
-//                $IncRes=$extramode->goodsnumInc(['uid' => $uid, 'gid' => $gid]);
-//
-//            } else {
-//                $insertRes=$extramode->insertgoods(['uid' => $uid, 'num' => 1, 'status' => 1, 'gid' => $gid, 'cid' => $cid]);
-//            }
-//            $numInc=$model->cartInc($uid, 'total');
-//            $priceInc=$model->cartInc($uid, 'price',$sale);
-//            if (($IncRes && $numInc && $priceInc) || ($insertRes && $numInc && $priceInc)) {
-//                Db::commit();
-//            }else{
-//                Db::rollback();
-//            }
-//        } else {
-//            Db::startTrans();
-//            $arr = ['id' => $uid, 'total' => 1, 'price' => $data['sale']];
-//
-//            $rows = $model->insertcart($arr);
-//            $cid = $model->getLastInsID();
-//            $goods = ['cid' => $cid, 'gid' => $data['gid'], 'num' => 1, 'status' => 1, 'uid' => $uid];
-//
-//            $result = Db::table('cart_extra')->insert($goods);
-//            if ($rows && $result) {
-//                Db::commit();
-//                return json([
-//                    'code' => config('code.success'),
-//                    'msg' => '购物车添加成功'
-//                ]);
-//
-//            } else {
-//                Db::rollback();
-//            }
-//
-//        }
-//    }
+    //接口api/cart/id
+    public function read($id)
+    {
+        $uid = $this->request->id;
+        $cartmodel = model('Cartmodel');
+        $cart = $cartmodel->queryone($uid);
+
+        //购物车的商品信息，连表查询
+        $goods = Db::table('cart_extra')->alias('c')
+            ->field('c.gid,c.num,c.status,goods.gname,goods.gthumb,goods.mprice')
+            ->join('goods', 'c.gid=goods.gid')
+            ->select();
+
+//        $cartextramodel = model('Cartextramodel');
+//        $goods = $cartextramodel->querygoods($uid);
+        if ($cart) {
+            $cart['goods'] = $goods;
+            return json([
+                'code' => config('code.success'),
+                'msg' => '购物车获取成功',
+                'data' => $cart
+            ]);
+        } else {
+            return json([
+                'code' => config('code.fail'),
+                'msg' => '购物车空空如也'
+            ]);
+        }
+
+    }
+
+    //修改更新购物车的数量
+
+    /**
+     * 购物车状态的切换
+     * /api/cart/id
+     *
+     *
+     *
+     */
+
+    public function update(Request $request, $id)
+    {
+        $data = $this->request->put();
+        $gid = $data['gid'];
+        $sale = $data['price'];
+
+        $uid = $this->request->id;
+        $arr = ['uid' => $uid, 'gid' => $gid];
+
+        $Cartextramodel = model('Cartextramodel');
+        $goods = $Cartextramodel->queryone($arr);
+        $status = $goods['status'] ? 0 : 1;
+        $num = $goods['num'];
+
+        Db::startTrans();
+
+
+        $goodsResult = $Cartextramodel->updategoods($arr, ['status' => $status]);
+        $cart = model('Cartmodel');
+
+
+        $ca = $cart->queryone($uid);
+        $total = $ca['total'];
+        $price = $ca['price'];
+        if ($status) {
+            $total += $num;
+            $price += $num * $sale;
+        } else {
+            $total -= $num;
+            $price -= $num * $sale;
+        }
+        $cartResult = $cart->cartUpdate(['id' => $uid], ['total' => $total, 'price' => $price]);
+        if ($goodsResult && $cartResult) {
+            Db::commit();
+            return json([
+                'code' => config('code.success'),
+                'msg' => '状态更改成功',
+
+            ]);
+
+        } else {
+            Db::rollback();
+            return json([
+                'code' => config('code.fail'),
+                'msg' => '状态更改失败',
+
+            ]);
+        }
+
+
+    }
+
 
 }

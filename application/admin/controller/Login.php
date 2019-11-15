@@ -26,7 +26,7 @@ class Login extends Controller
         $password = $data['password'];
 
         $data['password'] = md5(crypt($password, md5($salt)));
-        var_dump($data['password']);
+
         $result = Db::table('manage')->where($data)->find();
 
         if ($result) {

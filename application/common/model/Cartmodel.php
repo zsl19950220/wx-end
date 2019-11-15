@@ -26,10 +26,27 @@ class Cartmodel extends Model
     }
 
     //谁total，price
-    public function cartInc($uid, $field, $value=1)
+    public function cartInc($uid, $field, $value = 1)
     {
         return $this->where('id', $uid)->setInc($field, $value);
 
+    }
+
+    //购物车商品减少
+    public function cartDec($uid, $field, $value = 1)
+    {
+        return $this->where('id', $uid)->setDec($field, $value);
+
+    }
+
+    //购物车商品的更新
+    public function cartupdate($where, $value)
+    {
+        return $this->where($where)->update($value);
+    }
+
+    public function deleteCart($where){
+        return $this->where($where)->delete();
     }
 
 

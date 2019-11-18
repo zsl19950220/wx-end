@@ -44,13 +44,13 @@ class Cartextramodel extends Model
     //减少商品的数量
     public function delectgoods($uid)
     {
-        return $this->where('uid', $uid)->delete();
+        return $this->where($uid)->delete();
     }
 
 
     public function goodsnumDec($uid)
     {
-        return $this->where('uid', $uid)->setDec('num');
+        return $this->where($uid)->setDec('num');
     }
 
 

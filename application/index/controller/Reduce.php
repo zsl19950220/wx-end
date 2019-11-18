@@ -33,17 +33,21 @@ class Reduce extends Controller
         $gid = $data['gid'];
         $price = $data['price'];
 
+
         $model = model('Cartmodel');   //定义模型
         $extramodel = model('Cartextramodel');
 
 
-        $goodsinfo = $extramodel->queryone(['uid' => $uid, 'gid' => $gid,]);
+        $goodsinfo = $extramodel->queryone(['uid' => $uid, 'gid' => $gid]);
+
+
         $IncRes = '';
+        $insertRes='';
         if ($goodsinfo['num'] > 1) {
-            $IncRes = $extramodel->goodsnumDec($uid);
+            $IncRes = $extramodel->goodsnumDec(['uid' => $uid, 'gid' => $gid]);
 
         } else {
-            $insertRes = $extramodel->delectgoods($uid);
+            $insertRes = $extramodel->delectgoods(['uid' => $uid, 'gid' => $gid]);
         }
 
         $numberInc = $model->cartDec($uid, 'total');

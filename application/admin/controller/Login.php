@@ -31,7 +31,7 @@ class Login extends Controller
 
         if ($result) {
 
-            $payload = ['id' => $result['id'], 'names' => $result['names']];
+            $payload = ['id' => $result['id'], 'nickname' => $result['names']];
             $token = JWT::getToken($payload, config('jwtkey'));
             return json([
                 'code' => 200,
